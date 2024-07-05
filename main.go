@@ -14,6 +14,15 @@ type ItemEntity struct {
 	Name string `json:"name"`
 }
 
+type OnboardingItemEntity struct {
+	ID       int    `json:"id"`
+	Title    string `json:"title"`
+	Subtitle string `json:"subtitle"`
+	ImageUrl string `json:"image_url"`
+}
+
+var fakeCat = "https://loremflickr.com/500/500/cat"
+
 type ItemEntities []ItemEntity
 
 type AuthTokenEntity struct {
@@ -35,8 +44,36 @@ func setupRouter() *gin.Engine {
 		c.JSON(http.StatusOK, faker.Name())
 	})
 
+	r.GET("/null", func(c *gin.Context) {
+		c.String(http.StatusOK, "null")
+	})
+
+	r.GET("/int", func(c *gin.Context) {
+		c.String(http.StatusOK, "10")
+	})
+
+	r.GET("/empty-json", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{})
+	})
+
 	r.GET("/string/error", func(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "missing string"})
+	})
+
+	r.GET("/list-string", func(c *gin.Context) {
+		res := []string{
+			"satu", "dua", "tiga",
+		}
+
+		c.JSON(http.StatusOK, res)
+	})
+
+	r.GET("/list-int", func(c *gin.Context) {
+		res := []int{
+			1, 2, 3,
+		}
+
+		c.JSON(http.StatusOK, res)
 	})
 
 	r.GET("/list-item-entity", func(c *gin.Context) {
@@ -73,6 +110,19 @@ func setupRouter() *gin.Engine {
 		c.JSON(http.StatusOK, res)
 	})
 
+	r.GET("/onboarding", func(c *gin.Context) {
+		res := []OnboardingItemEntity{
+			{ID: 1, Title: faker.Name(), Subtitle: faker.Username(), ImageUrl: fakeCat + "?id=1"},
+			{ID: 2, Title: faker.Name(), Subtitle: faker.Username(), ImageUrl: fakeCat + "?id=2"},
+			{ID: 3, Title: faker.Name(), Subtitle: faker.Username(), ImageUrl: fakeCat + "?id=3"},
+			{ID: 4, Title: faker.Name(), Subtitle: faker.Username(), ImageUrl: fakeCat + "?id=4"},
+			{ID: 5, Title: faker.Name(), Subtitle: faker.Username(), ImageUrl: fakeCat + "?id=5"},
+			{ID: 6, Title: faker.Name(), Subtitle: faker.Username(), ImageUrl: fakeCat + "?id=6"},
+		}
+
+		c.JSON(http.StatusOK, res)
+	})
+
 	r.GET("/error-503", func(c *gin.Context) {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"message": "Service Unavailable"})
 	})
@@ -82,7 +132,7 @@ func setupRouter() *gin.Engine {
 		pass := c.PostForm("pass")
 
 		if user == "" || pass == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "missing user or pass"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing user or pass"})
 			return
 		}
 
