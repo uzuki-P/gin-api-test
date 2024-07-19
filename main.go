@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-faker/faker/v4"
@@ -29,6 +30,11 @@ type AuthTokenEntity struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 	ExpiresIn    int    `json:"expires_in"`
+}
+
+type QueryRecords struct {
+	Page  int `form:"page"   default:"1"`
+	Limit int `form:"limit"  default:"10"`
 }
 
 func setupRouter() *gin.Engine {
@@ -97,15 +103,30 @@ func setupRouter() *gin.Engine {
 	})
 
 	r.GET("/records-list-item-entity", func(c *gin.Context) {
-		res := []ItemEntity{
-			{ID: 1, Name: faker.Name()},
-			{ID: 2, Name: faker.Name()},
-			{ID: 3, Name: faker.Name()},
+		var query QueryRecords
+		if err := c.ShouldBindQuery(&query); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
 		}
 
-		c.Header("records-page", "1")
-		c.Header("records-total-page", "10")
-		c.Header("records-per-page", "5")
+		page := query.Page
+		limit := query.Limit
+		totalPage := 13 * limit
+
+		// res := []ItemEntity{
+		// 	{ID: 1, Name: faker.Name()},
+		// 	{ID: 2, Name: faker.Name()},
+		// 	{ID: 3, Name: faker.Name()},
+		// }
+
+		res := make([]ItemEntity, limit)
+		for i := 0; i < limit; i++ {
+			res[i] = ItemEntity{ID: (i + 1) + (limit * (page - 1)), Name: faker.Name()}
+		}
+
+		c.Header("records-page", strconv.Itoa(page))
+		c.Header("records-total-page", strconv.Itoa(totalPage))
+		c.Header("records-per-page", strconv.Itoa(limit))
 
 		c.JSON(http.StatusOK, res)
 	})
